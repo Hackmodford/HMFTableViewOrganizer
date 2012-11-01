@@ -35,19 +35,19 @@ Then in your tableview datasource methods use this.
 ```
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
     
-    return [self.sections count];
+    return [self.mySections count];
     
 }
 
 -(NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
     
-    return [[self.sections objectAtIndex:section] objectAtIndex:0];
+    return [[self.mySections objectAtIndex:section] objectAtIndex:0];
     
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     
-    return [[self.sections objectAtIndex:section] count] - 1;
+    return [[self.mySections objectAtIndex:section] count] - 1;
 
 }
 ```
@@ -55,7 +55,7 @@ Then in your tableview datasource methods use this.
 To find the object in self.myDataArray in say... the cellForRowAtIndexPath use...
 
 ```
-
+//+1 because first object is always a NSString for the section title...
 [self.myDataArray objectAtIndex:[[[self.mySectionsArray objectAtIndex:indexPath.section] objectAtIndex:indexPath.row + 1] intValue]]
 
 ```
