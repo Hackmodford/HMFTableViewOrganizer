@@ -24,6 +24,13 @@ self.mySectionsArray = [MSTableViewOrganizer organizeArrayAlphabetically:self.my
 
 self.mySectionsArray = [MSTableViewOrganizer organizeArrayChronologically:self.myDataArray withSortDescriptor:sortDescriptor withInitialSortDescriptor:initialSortDescriptor];```
 ```
+
+The array will always first be sorted by the initial sort descriptor. (example: invoices get sorted by ID number)
+Then it will be sorted by the sortDescriptor
+
+Sort Descriptors use KVC so you can sort any type of object that is KVC compliant. This is really useful for custom objects.
+
+
 Then in your tableview datasource methods use this.
 ```
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
