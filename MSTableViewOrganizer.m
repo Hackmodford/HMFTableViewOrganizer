@@ -1,14 +1,14 @@
 //
-//  MSTableViewOrganizer.m
+//  HMFTableViewOrganizer.m
 //  MA Mobile
 //
 //  Created by Brandon Butler on 11/1/12.
 //  Copyright (c) 2012 POS Management. All rights reserved.
 //
 
-#import "MSTableViewOrganizer.h"
+#import "HMFTableViewOrganizer.h"
 
-@implementation MSTableViewOrganizer
+@implementation HMFTableViewOrganizer
 
 +(NSMutableArray *)organizeArrayAlphabetically:(NSMutableArray *)array withSortDescriptor:(NSSortDescriptor *)sortDescriptor withInitialSortDescriptor:(NSSortDescriptor *)initialSortDescriptor {
     
