@@ -1,5 +1,5 @@
 //
-//  MSTableViewOrganizer.h
+//  HMFTableViewOrganizer.h
 //  MA Mobile
 //
 //  Created by Brandon Butler on 11/1/12.
@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-@interface MSTableViewOrganizer : NSObject
+@interface HMFTableViewOrganizer : NSObject
 
 +(NSMutableArray *)organizeArrayAlphabetically:(NSMutableArray *)array withSortDescriptor:(NSSortDescriptor *)sortDescriptor withInitialSortDescriptor:(NSSortDescriptor *)initialSortDescriptor;
 
