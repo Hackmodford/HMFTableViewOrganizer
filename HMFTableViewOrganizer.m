@@ -8,18 +8,16 @@
 
 #import "HMFTableViewOrganizer.h"
 
-#import "HMFWebOrder.h"
-
 @interface HMFTableViewOrganizer()
 
 //a reference to the original array
 @property (nonatomic, strong) NSArray *originalArray;
 
 //stores the titles for each section
-@property (nonatomic, strong) NSArray *sectionTitles;
+@property (nonatomic, strong) NSMutableArray *sectionTitles;
 
-//stores object indexes
-@property (nonatomic, strong) NSArray *sectionReferences;
+//stores object indexes for each section (for reference to the original Array)
+@property (nonatomic, strong) NSMutableArray *sectionReferences;
 
 @end
 
@@ -32,6 +30,7 @@
 -(id)initWithArray:(NSArray *)array {
     if ((self = [super init])) {
         _originalArray = array;
+        _sectionReferences = [NSMutableArray array];
     }
     return self;
 }
@@ -44,7 +43,7 @@
     
     //The items are ALWAYS first sorted by the initial sort descriptor if one exists
     NSMutableArray *sortedArray = [NSMutableArray arrayWithArray:[self.originalArray sortedArrayUsingDescriptors:@[initialSortDescriptor]]];
-
+    
     //secondary sort
     [sortedArray sortUsingDescriptors:@[sortDescriptor]];
 
@@ -69,19 +68,15 @@
     }
     
     //The simplest way I found to sort the sections (after sorting the individual items) was to create an array of the keys of the sectionsDictionary and then sort the array and use it to enumerate the sectionsDictionary.
-    
-    NSMutableArray* sortedKeyArray = [NSMutableArray arrayWithArray:[mutableSectionsDictionary allKeys]];
-    [sortedKeyArray sortUsingSelector:@selector(localizedCaseInsensitiveCompare:)];
+    self.sectionTitles = [NSMutableArray arrayWithArray:[mutableSectionsDictionary allKeys]];
+    [self.sectionTitles sortUsingSelector:@selector(localizedCaseInsensitiveCompare:)];
 
-    NSMutableArray *references = [NSMutableArray array];
-    
+    [self.sectionReferences removeAllObjects];
     //enumerating the Dictionary with sorted keys gives us the section titles organized and an array with the section objectReferences organized.
-    for (NSString *key in sortedKeyArray) {
-        [references addObject:[mutableSectionsDictionary objectForKey:key]];
+    for (NSString *key in self.sectionTitles) {
+        [self.sectionReferences addObject:[mutableSectionsDictionary objectForKey:key]];
     }
 
-    self.sectionTitles = sortedKeyArray;
-    self.sectionReferences = references;
 }
 
 -(void)organizeChronologicallyWithSortDescriptor:(NSSortDescriptor *)sortDescriptor withInitialSortDescriptor:(NSSortDescriptor *)initialSortDescriptor {
@@ -124,32 +119,29 @@
 
     //The simplest way I found to sort the sections (after sorting the individual items) was to create an array of the keys of the sectionsDictionary and then sort the array and use it to enumerate the sectionsDictionary.
     
-    NSMutableArray* sortedKeyArray = [NSMutableArray arrayWithArray:[mutableSectionsDictionary allKeys]];
+    self.sectionTitles = [NSMutableArray arrayWithArray:[mutableSectionsDictionary allKeys]];
 
     //To sort the section dates I first convert the sortedKeyArray's keys to NSDAtes and store them in a mutableArray.
     //Then I sort the temporary array and place all the keys back into sortedKeyArray
     
     NSMutableArray *tempDateKeyArray = [[NSMutableArray alloc] init];
     
-    for (NSString *key in sortedKeyArray) {
+    for (NSString *key in self.sectionTitles) {
         [tempDateKeyArray addObject:[formatter dateFromString:key]];
     }
     
     [tempDateKeyArray sortUsingSelector:@selector(compare:)];
-    [sortedKeyArray removeAllObjects];
+    [self.sectionTitles removeAllObjects];
     
     for (NSDate *key in tempDateKeyArray) {
-        [sortedKeyArray addObject:[formatter stringFromDate:key]];
+        [self.sectionTitles addObject:[formatter stringFromDate:key]];
     }
     
-    NSMutableArray *references = [NSMutableArray array];
+    [self.sectionReferences removeAllObjects];
     //essentially enumerating the Dictionary but with sorted keys.
-    for (id key in sortedKeyArray) {
-        [references addObject:[mutableSectionsDictionary objectForKey:key]];
+    for (id key in self.sectionTitles) {
+        [self.sectionReferences addObject:[mutableSectionsDictionary objectForKey:key]];
     }
-    
-    self.sectionTitles = sortedKeyArray;
-    self.sectionReferences = references;
     
 }
 
@@ -177,31 +169,16 @@
     self.originalArray = replacementArray;
     
     //create mutable copy of the sectionReference array
-    NSMutableArray *newSectionReferenceArray = [NSMutableArray arrayWithArray:[self.sectionReferences objectAtIndex:indexPath.section]];
+    NSMutableArray *sectionReferenceArray = [self.sectionReferences objectAtIndex:indexPath.section];
     
-    //if there is only one reference in the section remove the section title.
-    if ([newSectionReferenceArray count] == 1) {
-        NSLog(@"only item in section");
-        NSMutableArray *newSectionTitleArray = [NSMutableArray arrayWithArray:self.sectionTitles];
-        [newSectionTitleArray removeObjectAtIndex:indexPath.section];
-        self.sectionTitles = newSectionTitleArray;
-
-        NSMutableArray *finalSectionArray = [NSMutableArray arrayWithArray:self.sectionReferences];
-        [finalSectionArray removeObjectAtIndex:indexPath.section];
-        self.sectionReferences = finalSectionArray;
-        
+    if ([sectionReferenceArray count] == 1) {
+        //if there is only one reference in the sectionReferenceArray remove the sectionReference and sectionTitle.
+        [self.sectionTitles removeObjectAtIndex:indexPath.section];
+        [self.sectionReferences removeObjectAtIndex:indexPath.section];
     } else {
-        
-        //remove the object reference.
-        [newSectionReferenceArray removeObjectAtIndex:indexPath.row];
-        
-        //replace sectionReference section array with updated version.
-        NSMutableArray *finalSectionArray = [NSMutableArray arrayWithArray:self.sectionReferences];
-        [finalSectionArray replaceObjectAtIndex:indexPath.section withObject:newSectionReferenceArray];
-        self.sectionReferences = finalSectionArray;
-        
+        //remove the object from the sectionReferenceArray.
+        [sectionReferenceArray removeObjectAtIndex:indexPath.row];
     }
-
 }
 
 -(int)actualIndexForIndexPath:(NSIndexPath *)indexPath {
