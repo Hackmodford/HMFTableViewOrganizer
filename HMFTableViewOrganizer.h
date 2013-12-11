@@ -10,8 +10,16 @@
 
 @interface HMFTableViewOrganizer : NSObject
 
-+(NSMutableArray *)organizeArrayAlphabetically:(NSMutableArray *)array withSortDescriptor:(NSSortDescriptor *)sortDescriptor withInitialSortDescriptor:(NSSortDescriptor *)initialSortDescriptor;
++(instancetype)organizerWithArray:(NSArray *)array;
 
-+(NSMutableArray *)organizeArrayChronologically:(NSMutableArray *)array withSortDescriptor:(NSSortDescriptor *)sortDescriptor withInitialSortDescriptor:(NSSortDescriptor *)initialSortDescriptor;
+-(void)organizeAlphabeticallyWithSortDescriptor:(NSSortDescriptor *)sortDescriptor withInitialSortDescriptor:(NSSortDescriptor *)initialSortDescriptor;
+
+-(void)organizeChronologicallyWithSortDescriptor:(NSSortDescriptor *)sortDescriptor withInitialSortDescriptor:(NSSortDescriptor *)initialSortDescriptor;
+
+-(int)sectionCount;
+-(int)rowCountForSection:(int)section;
+-(NSString *)titleForSection:(int)section;
+-(id)objectForIndexPath:(NSIndexPath *)indexPath;
+-(void)removeObjectAtIndexPath:(NSIndexPath *)indexPath;
 
 @end
