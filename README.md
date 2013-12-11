@@ -1,7 +1,7 @@
 HMFTableViewOrganizer
 ====================
 
-Sort an array for use in a tableview
+Sort an array and create sections for use in a tableview!
 
 Create a property for HMFTableViewOrganizer.
 To initialize it use this convenience method.
