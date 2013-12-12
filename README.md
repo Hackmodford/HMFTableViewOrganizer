@@ -13,10 +13,17 @@ self.organizer = [HMFTableViewOrganizer organizerWithArray:myArray];
 Make sure to use one of the organize methods to sort the array.
 
 ```objective-c
-[self.organizer organizeAlphabeticallyWwithSortDescriptor:sortDescriptor withInitialSortDescriptor:initialSortDescriptor];
-
-[self.organizer organizeChronologicallyWithSortDescriptor:sortDescriptor withInitialSortDescriptor:initialSortDescriptor];
+-(void)organizeAlphabeticallyWithSortDescriptor:(NSSortDescriptor *)sortDescriptor withInitialSortDescriptor:(NSSortDescriptor *)initialSortDescriptor;
+-(void)organizeChronologicallyWithSortDescriptor:(NSSortDescriptor *)sortDescriptor withInitialSortDescriptor:(NSSortDescriptor *)initialSortDescriptor;
 ```
+
+If you want to sort without generating sections or just want a simple 1 pass sort you can use these methods.
+
+```objective-c
+-(void)organizeAlphabeticallyWithSortDescriptor:(NSSortDescriptor *)sortDescriptor withSections:(BOOL)withSections;
+-(void)organizeChronologicalyWithSortDescriptor:(NSSortDescriptor *)sortDescriptor withSections:(BOOL)withSections;
+```
+
 The array will always first be sorted by the initial sort descriptor. (example: invoices get sorted by ID number)
 Then it will be sorted by the sortDescriptor (example: invoices then get sorted by customer name)
 
