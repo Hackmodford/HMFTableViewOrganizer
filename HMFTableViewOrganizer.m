@@ -10,8 +10,7 @@
 
 @interface HMFTableViewOrganizer()
 
-//a reference to the original array
-@property (nonatomic, strong) NSArray *originalArray;
+@property (readwrite, nonatomic, strong) NSArray *originalArray;
 
 //stores the titles for each section
 @property (nonatomic, strong) NSMutableArray *sectionTitles;
@@ -31,6 +30,7 @@
     if ((self = [super init])) {
         _originalArray = array;
         _sectionReferences = [NSMutableArray array];
+        _sectionTitles = [NSMutableArray array];
     }
     return self;
 }
@@ -47,35 +47,7 @@
     //secondary sort
     [sortedArray sortUsingDescriptors:@[sortDescriptor]];
 
-    //I used a dictionary to store the initial sections because it seemed like an easy way to determine if a section was unique or not.
-    NSMutableDictionary *mutableSectionsDictionary = [NSMutableDictionary dictionary];
-    
-    for (id object in sortedArray) {
-        
-        NSString *sectionHeader = [object valueForKey:[sortDescriptor key]];
-        NSNumber *referenceNumber = @([self.originalArray indexOfObject:object]);
-
-        if ([mutableSectionsDictionary objectForKey:sectionHeader] == nil) {
-            //If there is a new section.
-            NSMutableArray *newObjectReferenceArray  = [NSMutableArray arrayWithObject:referenceNumber];
-            [mutableSectionsDictionary setObject:newObjectReferenceArray forKey:sectionHeader];
-            
-        } else {
-            //if a reference for this section already exist we simply add another reference to the purchase order.
-            [[mutableSectionsDictionary objectForKey:sectionHeader] addObject:referenceNumber];
-        }
-
-    }
-    
-    //The simplest way I found to sort the sections (after sorting the individual items) was to create an array of the keys of the sectionsDictionary and then sort the array and use it to enumerate the sectionsDictionary.
-    self.sectionTitles = [NSMutableArray arrayWithArray:[mutableSectionsDictionary allKeys]];
-    [self.sectionTitles sortUsingSelector:@selector(localizedCaseInsensitiveCompare:)];
-
-    [self.sectionReferences removeAllObjects];
-    //enumerating the Dictionary with sorted keys gives us the section titles organized and an array with the section objectReferences organized.
-    for (NSString *key in self.sectionTitles) {
-        [self.sectionReferences addObject:[mutableSectionsDictionary objectForKey:key]];
-    }
+    [self organizeAlphabeticallyWithSortDescriptor:sortDescriptor withSortedArray:sortedArray];
 
 }
 
@@ -91,6 +63,53 @@
     //secondary sort
     [sortedArray sortUsingDescriptors:@[sortDescriptor]];
 
+    [self organizeChronologicalSectionsWithSortDescriptor:sortDescriptor withSortedArray:sortedArray];
+    
+}
+
+-(void)organizeAlphabeticallyWithSortDescriptor:(NSSortDescriptor *)sortDescriptor withSections:(BOOL)withSections {
+    //This method first sorts the items array then generates a dictionary to create sections for the tableview.
+    //(A dictionary was an easy way to ensure that a section was unique)
+    //Then sorts those sections (because the dictionary is not based on order we create an array of the keys and actually just sort the keys).
+    
+    //The items are ALWAYS first sorted by the initial sort descriptor if one exists
+    NSMutableArray *sortedArray = [NSMutableArray arrayWithArray:[self.originalArray sortedArrayUsingDescriptors:@[sortDescriptor]]];
+
+    if (withSections) {
+        [self organizeAlphabeticallyWithSortDescriptor:sortDescriptor withSortedArray:sortedArray];
+    } else {
+        [self organizeWithoutSections:sortedArray];
+    }
+}
+
+-(void)organizeChronologicalyWithSortDescriptor:(NSSortDescriptor *)sortDescriptor withSections:(BOOL)withSections {
+    
+    //This method first sorts the items array then generates a dictionary to create sections for the tableview.
+    //(A dictionary was an easy way to ensure that a section was unique)
+    //Then sorts those sections (because the dictionary is not based on order we create an array of the keys and actually just sort the keys).
+    
+    //The items are ALWAYS first sorted by the initial sort descriptor if one exists
+    NSMutableArray *sortedArray = [NSMutableArray arrayWithArray:[self.originalArray sortedArrayUsingDescriptors:@[sortDescriptor]]];
+    
+    if (withSections) {
+        [self organizeChronologicalSectionsWithSortDescriptor:sortDescriptor withSortedArray:sortedArray];
+    } else {
+        [self organizeWithoutSections:sortedArray];
+    }
+}
+
+-(void)organizeWithoutSections:(NSMutableArray *)sortedArray {
+    [self.sectionReferences removeAllObjects];
+    NSMutableArray *onlySection = [NSMutableArray arrayWithCapacity:[sortedArray count]];
+    for (id object in sortedArray) {
+        [onlySection addObject:@([self.originalArray indexOfObject:object])];
+    }
+    [self.sectionReferences addObject:onlySection];
+    [self.sectionTitles removeAllObjects];
+    [self.sectionTitles addObject:@""];
+}
+
+-(void)organizeChronologicalSectionsWithSortDescriptor:(NSSortDescriptor *)sortDescriptor withSortedArray:(NSMutableArray *)sortedArray {
     //I used a dictionary to store the initial sections because it seemed like an easy way to determine if a section was unique or not.
     NSMutableDictionary *mutableSectionsDictionary = [[NSMutableDictionary alloc] init];
     
@@ -100,7 +119,8 @@
     
     for (id object in sortedArray) {
 
-        NSString *sectionHeader = [formatter stringFromDate:[object valueForKey:[sortDescriptor key]]];
+        NSString *sectionHeader = [formatter stringFromDate:[object valueForKeyPath:[sortDescriptor key]]];
+
         NSNumber *referenceNumber = @([self.originalArray indexOfObject:object]);
         
         if ([mutableSectionsDictionary objectForKey:sectionHeader] == nil) {
@@ -108,7 +128,7 @@
             
             NSMutableArray *newObjectReferenceArray  = [NSMutableArray arrayWithObject:referenceNumber];
             [mutableSectionsDictionary setObject:newObjectReferenceArray forKey:sectionHeader];
-
+            
         } else {
             
             //if a reference for this section already exist we simply add another reference to the purchase order.
@@ -116,11 +136,11 @@
         }
         
     }
-
+    
     //The simplest way I found to sort the sections (after sorting the individual items) was to create an array of the keys of the sectionsDictionary and then sort the array and use it to enumerate the sectionsDictionary.
     
     self.sectionTitles = [NSMutableArray arrayWithArray:[mutableSectionsDictionary allKeys]];
-
+    
     //To sort the section dates I first convert the sortedKeyArray's keys to NSDAtes and store them in a mutableArray.
     //Then I sort the temporary array and place all the keys back into sortedKeyArray
     
@@ -142,7 +162,40 @@
     for (id key in self.sectionTitles) {
         [self.sectionReferences addObject:[mutableSectionsDictionary objectForKey:key]];
     }
+
+}
+-(void)organizeAlphabeticallyWithSortDescriptor:(NSSortDescriptor *)sortDescriptor withSortedArray:(NSMutableArray *)sortedArray {
     
+    //I used a dictionary to store the initial sections because it seemed like an easy way to determine if a section was unique or not.
+    NSMutableDictionary *mutableSectionsDictionary = [NSMutableDictionary dictionary];
+    
+    for (id object in sortedArray) {
+        
+        NSString *sectionHeader = [object valueForKeyPath:[sortDescriptor key]];
+            
+        NSNumber *referenceNumber = @([self.originalArray indexOfObject:object]);
+        
+        if ([mutableSectionsDictionary objectForKey:sectionHeader] == nil) {
+            //If there is a new section.
+            NSMutableArray *newObjectReferenceArray  = [NSMutableArray arrayWithObject:referenceNumber];
+            [mutableSectionsDictionary setObject:newObjectReferenceArray forKey:sectionHeader];
+            
+        } else {
+            //if a reference for this section already exist we simply add another reference to the purchase order.
+            [[mutableSectionsDictionary objectForKey:sectionHeader] addObject:referenceNumber];
+        }
+        
+    }
+    
+    //The simplest way I found to sort the sections (after sorting the individual items) was to create an array of the keys of the sectionsDictionary and then sort the array and use it to enumerate the sectionsDictionary.
+    self.sectionTitles = [NSMutableArray arrayWithArray:[mutableSectionsDictionary allKeys]];
+    [self.sectionTitles sortUsingSelector:@selector(localizedCaseInsensitiveCompare:)];
+    
+    [self.sectionReferences removeAllObjects];
+    //enumerating the Dictionary with sorted keys gives us the section titles organized and an array with the section objectReferences organized.
+    for (NSString *key in self.sectionTitles) {
+        [self.sectionReferences addObject:[mutableSectionsDictionary objectForKey:key]];
+    }
 }
 
 -(int)sectionCount {
