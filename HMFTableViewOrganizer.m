@@ -232,6 +232,17 @@
         //remove the object from the sectionReferenceArray.
         [sectionReferenceArray removeObjectAtIndex:indexPath.row];
     }
+    
+    //step through each reference. If the reference is greater than the actualIndex subtract 1 from it to reflect that there is an object missing from the original array.
+    for (int i = 0; i < [self.sectionReferences count]; i++) {
+        NSMutableArray *sectionReference = [self.sectionReferences objectAtIndex:i];
+        for (int x = 0; x < [sectionReference count]; x++) {
+            NSNumber *reference = [sectionReference objectAtIndex:x];
+            if ([reference integerValue] > actualIndex) {
+                [sectionReference replaceObjectAtIndex:x withObject:@([reference integerValue] - 1)];
+            }
+        }
+    }
 }
 
 -(int)actualIndexForIndexPath:(NSIndexPath *)indexPath {
